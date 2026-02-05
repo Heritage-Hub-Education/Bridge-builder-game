@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bridge Builder: The Social Capital Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1200px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .game-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .game-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .game-header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .game-content {
+            padding: 30px;
+        }
+
+        /* Start Screen */
+        .start-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .start-screen h2 {
+            color: #333;
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .start-screen p {
+            color: #666;
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .character-select {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .character-card {
+            background: #f8f9fa;
+            border: 3px solid transparent;
+            border-radius: 15px;
+            padding: 20px;
+            width: 200px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .character-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .character-card.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .character-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .character-card p {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        .character-goal {
+            background: #fff3cd;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            color: #856404;
+            font-weight: bold;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Game Board */
+        .game-board {
+            display: none;
+        }
+
+        .game-board.active {
+            display: block;
+        }
+
+        .game-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .progress-bar {
+            background: #e9ecef;
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            width: 200px;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .network-view {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .network-section {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .network-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .person-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .person-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #ddd;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .person-card:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .person-card.connected {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+
+        .person-card.available {
+            border-left-color: #667eea;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .person-card.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .person-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .person-role {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .person-knows {
+            font-size: 0.85em;
+            color: #667eea;
+            font-style: italic;
+        }
+
+        .action-area {
+            background: #fff;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 200px;
+        }
+
+        .action-prompt {
+            color: #333;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .action-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Dialogue Box */
+        .dialogue-box {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .dialogue-speaker {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .dialogue-text {
+            color: #333;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .dialogue-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .dialogue-option {
+            background: white;
+            border: 2px solid #667eea;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .dialogue-option:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Victory Screen */
+        .victory-screen {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .victory-screen.active {
+            display: block;
+        }
+
+        .victory-icon {
+            font-size: 5em;
+            margin-bottom: 20px;
+        }
+
+        .victory-screen h2 {
+            color: #28a745;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .key-learnings {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            text-align: left;
+        }
+
+        .learning-item {
+            margin-bottom: 25px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .learning-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .learning-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .learning-points {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .learning-points li {
+            padding-left: 25px;
+            position: relative;
+            margin-bottom: 8px;
+            color: #666;
+        }
+
+        .learning-points li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .path-visualization {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .connection-path {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .path-node {
+            background: #667eea;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .path-arrow {
+            color: #667eea;
+            font-size: 1.5em;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            min-width: 150px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s, slideOut 0.3s 2.7s;
+            z-index: 1000;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1>🌉 Bridge Builder</h1>
+            <p>The Social Capital Game</p>
+        </div>
+
+        <div class="game-content">
+            <!-- Start Screen -->
+            <div class="start-screen" id="startScreen">
+                <h2>Welcome to Riverside Community</h2>
+                <p>In this game, you'll discover how social capital works in the real world. Your goal? Help a young person achieve their dreams by building bridges to the right people. Remember: opportunities don't come to you—they circulate in specific rooms. You need to build bridges to reach them!</p>
+                
+                <h3 style="margin: 30px 0 20px; color: #333;">Choose Your Character:</h3>
+                <div class="character-select" id="characterSelect">
+                    <div class="character-card" data-character="carlos">
+                        <h3>Carlos Martinez</h3>
+                        <p>17-year-old high school senior</p>
+                        <div class="character-goal">Goal: Find a college scholarship</div>
+                    </div>
+                    <div class="character-card" data-character="maria">
+                        <h3>Maria Rodriguez</h3>
+                        <p>16-year-old science lover</p>
+                        <div class="character-goal">Goal: Get STEM career guidance</div>
+                    </div>
+                    <div class="character-card" data-character="deshawn">
+                        <h3>DeShawn Washington</h3>
+                        <p>17-year-old musician</p>
+                        <div class="character-goal">Goal: Find music industry internship</div>
+                    </div>
+                </div>
+                
+                <button class="btn" id="startBtn" disabled>Start Your Journey</button>
+            </div>
+
+            <!-- Game Board -->
+            <div class="game-board" id="gameBoard">
+                <div class="game-info">
+                    <div class="info-item">
+                        <div class="info-label">Playing as:</div>
+                        <div class="info-value" id="characterName">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Goal:</div>
+                        <div class="info-value" id="characterGoal">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Connections Made:</div>
+                        <div class="info-value" id="connectionsCount">0</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Progress:</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressBar" style="width: 0%">0%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="network-view">
+                    <div class="network-section">
+                        <h3>👨‍👩‍👧‍👦 Your Bonding Capital (Close Ties)</h3>
+                        <div class="person-list" id="bondingList"></div>
+                    </div>
+                    <div class="network-section">
+                        <h3>🌉 Your Bridging Capital (Weak Ties)</h3>
+                        <div class="person-list" id="bridgingList"></div>
+                    </div>
+                </div>
+
+                <div class="action-area" id="actionArea">
+                    <div class="action-prompt" id="actionPrompt">
+                        Click on a person above to interact with them and build your network!
+                    </div>
+                </div>
+            </div>
+
+            <!-- Victory Screen -->
+            <div class="victory-screen" id="victoryScreen">
+                <div class="victory-icon">🎉</div>
+                <h2>Congratulations!</h2>
+                <p style="font-size: 1.3em; color: #666; margin-bottom: 30px;" id="victoryMessage"></p>
+
+                <div class="path-visualization" id="pathVisualization">
+                    <h3 style="color: #333; margin-bottom: 15px;">Your Connection Path:</h3>
+                    <div class="connection-path" id="connectionPath"></div>
+                </div>
+
+                <div class="stats">
+                    <div class="stat-box">
+                        <div class="stat-number" id="totalConnections">0</div>
+                        <div class="stat-label">Total Connections</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number" id="bridgesBuilt">0</div>
+                        <div class="stat-label">Bridges Built</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number" id="pathLength">0</div>
+                        <div class="stat-label">Degrees of Separation</div>
+                    </div>
+                </div>
+
+                <div class="key-learnings">
+                    <h3 style="text-align: center; color: #333; margin-bottom: 25px;">🎓 Three Critical Truths About Social Capital</h3>
+                    
+                    <div class="learning-item">
+                        <div class="learning-title">1. Opportunities circulate in specific "rooms"</div>
+                        <ul class="learning-points">
+                            <li>The scholarship/internship existed the whole time</li>
+                            <li>But only certain people knew about it</li>
+                            <li>You had to build a bridge to reach that room</li>
+                        </ul>
+                    </div>
+
+                    <div class="learning-item">
+                        <div class="learning-title">2. Bonding capital keeps you strong—bridging capital helps you grow</div>
+                        <ul class="learning-points">
+                            <li>Your family and close friends provide support and love</li>
+                            <li>But weak ties provide access to new information and opportunities</li>
+                            <li>You need BOTH—don't choose one over the other</li>
+                        </ul>
+                    </div>
+
+                    <div class="learning-item">
+                        <div class="learning-title">3. You're closer to opportunities than you think</div>
+                        <ul class="learning-points">
+                            <li>Most opportunities are just 2-3 connections away</li>
+                            <li>The key is activating your weak ties</li>
+                            <li>Each bridge you build opens doors to new rooms</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <button class="btn" onclick="location.reload()">Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        const gameState = {
+            selectedCharacter: null,
+            connections: [],
+            currentPath: [],
+            interactionCount: 0,
+            progress: 0,
+            goalAchieved: false
+        };
+
+        // Character Data
+        const characters = {
+            carlos: {
+                name: "Carlos Martinez",
+                goal: "College Scholarship",
+                bonding: [
+                    { id: "mom", name: "Mrs. Martinez", role: "Your mom, works two jobs", knows: "Everyone in the neighborhood", intro: "Your mom is always supportive. She tells you to work hard but doesn't know much about college applications." },
+                    { id: "maria", name: "Maria Rodriguez", role: "Your best friend", knows: "The same people you know", intro: "Maria is in the same boat as you. She wants to go to college too but doesn't know where to start." },
+                    { id: "juan", name: "Mr. Rodriguez", role: "Maria's dad, your boss", knows: "Local business owners", intro: "Mr. Rodriguez is nice but he's focused on his grocery store. He hasn't been to college." }
+                ],
+                bridging: [
+                    { id: "coach", name: "Coach Thompson", role: "Basketball coach at community center", unlocked: false, requires: ["mom"], knows: "About athletic scholarships and college recruiters", intro: "Coach Thompson remembers you from the youth basketball league. 'Hey! You thinking about college? I know some people who could help.'", opportunity: null },
+                    { id: "chen", name: "Ms. Chen", role: "High school chemistry teacher", unlocked: false, requires: ["coach", "maria"], knows: "About university programs and scholarships", intro: "Ms. Chen is excited to help. 'I work with the university's outreach program. There's a full scholarship for students like you!'", opportunity: "scholarship" },
+                    { id: "david", name: "David Kim", role: "Community center coordinator", unlocked: false, requires: ["mom"], knows: "About summer programs and internships", intro: "David runs programs at the community center. 'Your mom mentioned you want to go to college. Let me introduce you to some people.'", opportunity: null }
+                ],
+                winPath: ["mom", "coach", "chen"],
+                winMessage: "You found the full scholarship to State University!"
+            },
+            maria: {
+                name: "Maria Rodriguez",
+                goal: "STEM Career Path",
+                bonding: [
+                    { id: "dad", name: "Mr. Rodriguez", role: "Your dad, grocery store owner", knows: "Local business community", intro: "Your dad is proud of your interest in science but doesn't know anyone in that field." },
+                    { id: "carlos", name: "Carlos Martinez", role: "Your best friend", knows: "The same people you know", intro: "Carlos is supportive but he's dealing with his own challenges." }
+                ],
+                bridging: [
+                    { id: "chen", name: "Ms. Chen", role: "Your chemistry teacher", unlocked: true, requires: [], knows: "About STEM programs and professionals", intro: "Ms. Chen has noticed your talent. 'Maria, have you thought about what you want to do in science? I know some people who could help.'", opportunity: null },
+                    { id: "okafor", name: "Dr. Okafor", role: "Dentist, grew up in Riverside", unlocked: false, requires: ["chen"], knows: "About health careers and professional paths", intro: "Dr. Okafor is impressed. 'Ms. Chen says you're interested in health sciences. I run a shadowing program for students. Want to join?'", opportunity: "shadowing" },
+                    { id: "patel", name: "Mrs. Patel", role: "Library director", unlocked: false, requires: ["chen"], knows: "About free educational programs", intro: "Mrs. Patel runs workshops at the library. 'We have a STEM mentorship program starting next month. You'd be perfect!'", opportunity: null }
+                ],
+                winPath: ["chen", "okafor"],
+                winMessage: "You got into the health careers shadowing program and found your path!"
+            },
+            deshawn: {
+                name: "DeShawn Washington",
+                goal: "Music Industry Internship",
+                bonding: [
+                    { id: "aunt", name: "Rev. Patricia Washington", role: "Your aunt, community pastor", knows: "Families across many neighborhoods", intro: "Your aunt has always supported your music. 'Baby, you have real talent. Let me ask around.'" },
+                    { id: "marcus", name: "Marcus Washington", role: "Your cousin, looking for work", knows: "People in similar situations", intro: "Marcus is struggling too. He doesn't know anyone in the music industry." }
+                ],
+                bridging: [
+                    { id: "david", name: "David Kim", role: "Community center coordinator", unlocked: false, requires: ["aunt"], knows: "About youth programs and local opportunities", intro: "David heard you play at church. 'You're really talented! Have you thought about formal training?'", opportunity: null },
+                    { id: "brooks", name: "Jamal Brooks", role: "Recording studio owner", unlocked: false, requires: ["aunt"], knows: "The music industry", intro: "Jamal knows your aunt from a community event. 'Rev. Washington tells me you're serious about music. Come by the studio—I'm looking for an intern.'", opportunity: "internship" },
+                    { id: "antonio", name: "Antonio Silva", role: "Coffee shop owner, music venue host", unlocked: false, requires: ["aunt", "david"], knows: "Local artists and performers", intro: "Antonio hosts open mic nights. 'I've heard about you. Want to perform here and meet some industry people?'", opportunity: null }
+                ],
+                winPath: ["aunt", "brooks"],
+                winMessage: "You got the music production apprenticeship at Riverside Sound!"
+            }
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            setupCharacterSelection();
+        });
+
+        function setupCharacterSelection() {
+            const cards = document.querySelectorAll('.character-card');
+            const startBtn = document.getElementById('startBtn');
+
+            cards.forEach(card => {
+                card.addEventListener('click', function() {
+                    cards.forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    gameState.selectedCharacter = this.dataset.character;
+                    startBtn.disabled = false;
+                });
+            });
+
+            startBtn.addEventListener('click', startGame);
+        }
+
+        function startGame() {
+            const character = characters[gameState.selectedCharacter];
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameBoard').classList.add('active');
+            
+            document.getElementById('characterName').textContent = character.name;
+            document.getElementById('characterGoal').textContent = character.goal;
+            
+            renderNetwork();
+        }
+
+        function renderNetwork() {
+            const character = characters[gameState.selectedCharacter];
+            const bondingList = document.getElementById('bondingList');
+            const bridgingList = document.getElementById('bridgingList');
+            
+            bondingList.innerHTML = '';
+            bridgingList.innerHTML = '';
+
+            // Render bonding capital
+            character.bonding.forEach(person => {
+                const card = createPersonCard(person, 'bonding');
+                bondingList.appendChild(card);
+            });
+
+            // Render bridging capital
+            character.bridging.forEach(person => {
+                const card = createPersonCard(person, 'bridging');
+                bridgingList.appendChild(card);
+            });
+        }
+
+        function createPersonCard(person, type) {
+            const card = document.createElement('div');
+            card.className = 'person-card';
+            
+            const isConnected = gameState.connections.includes(person.id);
+            const isAvailable = type === 'bonding' || person.unlocked === true || 
+                               (person.requires && person.requires.some(req => gameState.connections.includes(req)));
+            const isLocked = type === 'bridging' && !isAvailable;
+
+            if (isConnected) {
+                card.classList.add('connected');
+            } else if (isAvailable) {
+                card.classList.add('available');
+            } else {
+                card.classList.add('locked');
+            }
+
+            card.innerHTML = `
+                <div class="person-name">${person.name}</div>
+                <div class="person-role">${person.role}</div>
+                ${person.knows ? `<div class="person-knows">Knows: ${person.knows}</div>` : ''}
+            `;
+
+            if (!isLocked) {
+                card.addEventListener('click', () => interactWithPerson(person, type));
+            }
+
+            return card;
+        }
+
+        function interactWithPerson(person, type) {
+            if (gameState.connections.includes(person.id)) {
+                return; // Already connected
+            }
+
+            const character = characters[gameState.selectedCharacter];
+            const actionArea = document.getElementById('actionArea');
+            
+            actionArea.innerHTML = `
+                <div class="dialogue-box">
+                    <div class="dialogue-speaker">${person.name}</div>
+                    <div class="dialogue-text">${person.intro}</div>
+                    <div class="dialogue-options">
+                        <div class="dialogue-option" onclick="makeConnection('${person.id}', '${type}', ${person.opportunity ? `'${person.opportunity}'` : 'null'})">
+                            ${type === 'bonding' ? '💬 Talk to them about your goal' : '🤝 Build this bridge'}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function makeConnection(personId, type, opportunity) {
+            gameState.connections.push(personId);
+            gameState.currentPath.push(personId);
+            gameState.interactionCount++;
+
+            const character = characters[gameState.selectedCharacter];
+            
+            // Update UI
+            updateProgress();
+            renderNetwork();
+            showNotification(`Connection made with ${getPersonName(personId)}!`);
+
+            // Check if this unlocks new bridges
+            if (type === 'bonding') {
+                unlockBridges(personId);
+            }
+
+            // Check for win condition
+            if (opportunity) {
+                setTimeout(() => {
+                    winGame();
+                }, 500);
+            } else {
+                document.getElementById('actionArea').innerHTML = `
+                    <div class="action-prompt">
+                        Great! You've connected with ${getPersonName(personId)}. This might open new doors. Check who's now available to talk to!
+                    </div>
+                `;
+            }
+        }
+
+        function unlockBridges(bondingId) {
+            const character = characters[gameState.selectedCharacter];
+            character.bridging.forEach(person => {
+                if (person.requires && person.requires.includes(bondingId)) {
+                    person.unlocked = true;
+                }
+            });
+            renderNetwork();
+        }
+
+        function getPersonName(id) {
+            const character = characters[gameState.selectedCharacter];
+            const allPeople = [...character.bonding, ...character.bridging];
+            const person = allPeople.find(p => p.id === id);
+            return person ? person.name : '';
+        }
+
+        function updateProgress() {
+            const character = characters[gameState.selectedCharacter];
+            const progress = (gameState.connections.length / (character.winPath.length + 1)) * 100;
+            gameState.progress = Math.min(progress, 100);
+            
+            document.getElementById('connectionsCount').textContent = gameState.connections.length;
+            document.getElementById('progressBar').style.width = gameState.progress + '%';
+            document.getElementById('progressBar').textContent = Math.round(gameState.progress) + '%';
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        function winGame() {
+            const character = characters[gameState.selectedCharacter];
+            
+            document.getElementById('gameBoard').classList.remove('active');
+            document.getElementById('victoryScreen').classList.add('active');
+            
+            document.getElementById('victoryMessage').textContent = character.winMessage;
+            document.getElementById('totalConnections').textContent = gameState.connections.length;
+            document.getElementById('bridgesBuilt').textContent = gameState.connections.length - character.bonding.length;
+            document.getElementById('pathLength').textContent = gameState.currentPath.length;
+            
+            // Show connection path
+            const pathDiv = document.getElementById('connectionPath');
+            pathDiv.innerHTML = '';
+            
+            pathDiv.appendChild(createPathNode(character.name));
+            
+            gameState.currentPath.forEach(personId => {
+                pathDiv.appendChild(createPathArrow());
+                pathDiv.appendChild(createPathNode(getPersonName(personId)));
+            });
+        }
+
+        function createPathNode(name) {
+            const node = document.createElement('div');
+            node.className = 'path-node';
+            node.textContent = name;
+            return node;
+        }
+
+        function createPathArrow() {
+            const arrow = document.createElement('div');
+            arrow.className = 'path-arrow';
+            arrow.textContent = '→';
+            return arrow;
+        }
+    </script>
+</body>
+</html>
